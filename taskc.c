@@ -1,3 +1,4 @@
+#include "task.h"
 #include "nav_map.h"
 
 /*
@@ -22,13 +23,6 @@
 #define EXIT_C_Y 1
 #define TASK_MAX_STEPS 80
 
-typedef enum {
-    TASK_OK = 0,
-    TASK_NO_PATH,
-    TASK_MOVE_FAILED,
-    TASK_TOO_MANY_STEPS
-} TaskResult;
-
 /*
  * ============================
  * 下面是硬件占位接口
@@ -48,40 +42,74 @@ typedef enum {
 
 static bool motion_turn_left_90(void)
 {
+    /*
+     * TODO:
+     * 后续替换成真实 IMU 闭环左转 90 度。
+     */
     return true;
 }
 
 static bool motion_turn_right_90(void)
 {
+    /*
+     * TODO:
+     * 后续替换成真实 IMU 闭环右转 90 度。
+     */
     return true;
 }
 
 static bool motion_turn_back_180(void)
 {
+    /*
+     * TODO:
+     * 可以连续调用两次 90 度转向，也可以单独做 180 度闭环。
+     */
     return true;
 }
 
 static bool motion_move_one_cell(void)
 {
+    /*
+     * TODO:
+     * 后续替换成“编码器距离闭环 + IMU 航向保持”。
+     * 目标距离约为一个格子，即 45cm。
+     */
     return true;
 }
 
 static void motion_stop(void)
 {
+    /*
+     * TODO:
+     * 后续替换成电机驱动板停车命令。
+     */
 }
 
 static bool sensor_front_blocked(void)
 {
+    /*
+     * TODO:
+     * 后续替换成前 ToF 测距判断。
+     * true 表示前方边有墙/挡板。
+     */
     return false;
 }
 
 static bool sensor_left_blocked(void)
 {
+    /*
+     * TODO:
+     * 后续替换成左 ToF 测距判断。
+     */
     return false;
 }
 
 static bool sensor_right_blocked(void)
 {
+    /*
+     * TODO:
+     * 后续替换成右 ToF 测距判断。
+     */
     return false;
 }
 

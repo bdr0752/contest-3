@@ -74,35 +74,54 @@ typedef struct {
     Direction dir;
 } RobotNav;
 
+/* 初始化地图、小车起点和车头方向。 */
 void nav_init(RobotNav *nav);
+
+/* 把小车当前所在格标记为已访问。 */
 void nav_mark_current_visited(RobotNav *nav);
+
+/* 判断 4x4 的 16 个格子是否都访问过。 */
 bool nav_all_visited(const RobotNav *nav);
 
+/*
+ * 设置某个格子的某条边是否 blocked。
+ * 会自动同步相邻格子的反方向边。
+ */
 void nav_set_edge_blocked(RobotNav *nav,
                           uint8_t x,
                           uint8_t y,
                           Direction dir,
                           bool blocked);
+
+/* 设置当前格子的某条边是否 blocked。 */
 void nav_set_current_edge_blocked(RobotNav *nav,
                                   Direction dir,
                                   bool blocked);
 
+/* 判断从 (x,y) 往 dir 方向是否能走到相邻格。 */
 bool nav_can_go(const RobotNav *nav,
                 uint8_t x,
                 uint8_t y,
                 Direction dir);
 
+/* 小车实际走完一格后，更新软件记录中的 x/y/dir。 */
 bool nav_update_position(RobotNav *nav, Direction dir);
 
+/* BFS 找最近未访问格，返回下一步方向。 */
 bool nav_plan_to_nearest_unvisited(const RobotNav *nav, Direction *next_dir);
+
+/* BFS 找指定目标格，返回下一步方向。 */
 bool nav_plan_to_cell(const RobotNav *nav,
                       uint8_t target_x,
                       uint8_t target_y,
                       Direction *next_dir);
 
+/* 根据当前方向计算左边、右边、反方向。 */
 Direction nav_left_of(Direction dir);
 Direction nav_right_of(Direction dir);
 Direction nav_opposite_dir(Direction dir);
+
+/* 根据当前车头方向和目标方向，判断需要直行/左转/右转/掉头。 */
 TurnAction nav_get_turn_action(Direction current, Direction target);
 
 #endif

@@ -1,6 +1,13 @@
 #include "nav_map.h"
 
 /*
+ * nav_map.c 是“地图与路径规划层”。
+ *
+ * 它只处理离散的 4x4 格子，不直接控制电机。
+ * 对它来说，小车每次只会从一个格子中心移动到相邻格子中心。
+ */
+
+/*
  * 方向对应的坐标变化。
  *
  * 北：x 不变，y - 1
@@ -128,6 +135,10 @@ void nav_set_edge_blocked(RobotNav *nav,
         return;
     }
 
+    /*
+     * known 表示这条边已经被确认过。
+     * blocked 表示这条边确认不能走。
+     */
     nav->cell[y][x].known |= DIR_BIT(dir);
 
     if (blocked) {
@@ -196,6 +207,10 @@ bool nav_update_position(RobotNav *nav, Direction dir)
     nx = (int8_t)nav->x + g_dx[dir];
     ny = (int8_t)nav->y + g_dy[dir];
 
+    /*
+     * 这里只更新软件状态。
+     * 真正的电机前进动作应该在 taskc.c 的 motion_move_one_cell() 中完成。
+     */
     nav->x = (uint8_t)nx;
     nav->y = (uint8_t)ny;
     nav->dir = dir;
@@ -214,6 +229,13 @@ static bool nav_bfs_first_step(const RobotNav *nav,
                                int8_t target_y,
                                Direction *next_dir)
 {
+    /*
+     * 这个 BFS 只返回“第一步方向”，不返回完整路径。
+     *
+     * 原因：
+     *   小车每走一格后都要重新读 ToF、更新地图。
+     *   所以每次只执行 BFS 给出的第一步，然后重新规划，更稳。
+     */
     bool used[NAV_MAP_H][NAV_MAP_W] = { false };
     int8_t parent_x[NAV_MAP_H][NAV_MAP_W];
     int8_t parent_y[NAV_MAP_H][NAV_MAP_W];
