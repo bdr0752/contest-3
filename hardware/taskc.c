@@ -77,6 +77,24 @@ static bool motion_move_one_cell(void)
     return true;
 }
 
+static bool motion_enter_map_from_a(void)
+{
+    /*
+     * TODO:
+     * 这里代表“从准备区启动后，穿过 A 口并走到地图起始格中心”。
+     *
+     * 后续真实实现时，这里不一定正好等于一个标准格长。
+     * 它更像一个专门的入图动作，距离需要靠实车标定。
+     *
+     * 推荐真实版本做法：
+     * 1. 启动后直行进入 A 口
+     * 2. 走到约定好的起始格中心
+     * 3. 停车
+     * 4. 必要时做一次姿态校正
+     */
+    return true;
+}
+
 static void motion_stop(void)
 {
     /*
@@ -211,6 +229,35 @@ static TaskResult task_go_one_cell(RobotNav *nav, Direction next_dir)
 }
 
 /*
+ * 从准备区进入地图。
+ *
+ * 当前整个 BFS 导航都是从“已经进入 4x4 地图的第一个起始格”开始算的。
+ * 所以在真正开始任务前，需要先做一次入图动作。
+ *
+ * 当前仍然采用之前的坐标假设：
+ *   入图完成后，小车位于 (0,2)，车头朝东。
+ *
+ * 注意：
+ *   nav_init() 只是初始化软件里的地图和起始坐标；
+ *   真正把车开到这个位置的是 motion_enter_map_from_a()。
+ */
+static TaskResult task_enter_map_from_a(RobotNav *nav)
+{
+    nav_init(nav);
+
+    if (!motion_enter_map_from_a()) {
+        motion_stop();
+        return TASK_MOVE_FAILED;
+    }
+
+    /*
+     * 入图完成后，逻辑上认为车已经到达起始格中心。
+     */
+    nav_mark_current_visited(nav);
+    return TASK_OK;
+}
+
+/*
  * 规划到指定格子，并一步一步走过去。
  *
  * 任务1去 C 口前，可以用它走到 C 对应的格子。
@@ -290,9 +337,12 @@ static TaskResult task_exit_from_c(RobotNav *nav)
 TaskResult task_1_go_from_a_to_c(void)
 {
     RobotNav nav;
+    TaskResult result;
 
-    nav_init(&nav);
-    nav_mark_current_visited(&nav);
+    result = task_enter_map_from_a(&nav);
+    if (result != TASK_OK) {
+        return result;
+    }
 
     return task_exit_from_c(&nav);
 }
@@ -311,9 +361,12 @@ TaskResult task_2_traverse_16_cells_then_exit_c(void)
 {
     RobotNav nav;
     uint8_t steps = 0;
+    TaskResult result;
 
-    nav_init(&nav);
-    nav_mark_current_visited(&nav);
+    result = task_enter_map_from_a(&nav);
+    if (result != TASK_OK) {
+        return result;
+    }
 
     while (!nav_all_visited(&nav)) {
         Direction next_dir = DIR_NONE;
